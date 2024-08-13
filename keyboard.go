@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"gwintils/gwintils/util"
+	"github.com/notaud/gwintils/util"
 )
 
 var procGetAsyncKeyState = User32.NewProc("GetAsyncKeyState")

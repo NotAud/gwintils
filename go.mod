@@ -1,4 +1,4 @@
-module gwintils/gwintils
+module github.com/notaud/gwintils
 
 go 1.20
 
