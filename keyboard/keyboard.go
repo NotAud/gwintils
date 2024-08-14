@@ -1,14 +1,15 @@
-package main
+package keyboard
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
+	User32 "github.com/notaud/gwintils/base"
 	"github.com/notaud/gwintils/util"
 )
 
-var procGetAsyncKeyState = User32.NewProc("GetAsyncKeyState")
+var procGetAsyncKeyState = User32.GetAsyncKeyState()
 
 func ListenKey(key string) error {
 	vk, ok := util.KeyMap[strings.ToLower(key)]

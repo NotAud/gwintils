@@ -1,16 +1,18 @@
-package main
+package mouse
 
 import (
 	"fmt"
-	"time"
 	"unsafe"
 
+	User32 "github.com/notaud/gwintils/base"
+	"github.com/notaud/gwintils/monitor"
 	"github.com/notaud/gwintils/types"
 )
 
 var (
-	procMouseEvent   = User32.NewProc("mouse_event")
-	procGetCursorPos = User32.NewProc("GetCursorPos")
+	procMouseEvent   = User32.MouseEvent()
+	procGetCursorPos = User32.GetCursorPos()
+	procSendInput    = User32.SendInput()
 )
 
 type MouseInput struct {
@@ -25,8 +27,6 @@ type MouseInput struct {
 	}
 }
 
-func (MouseInput) isInput() {}
-
 const (
 	INPUT_MOUSE             = 0
 	MOUSEEVENTF_MOVE        = 0x0001
@@ -40,8 +40,8 @@ const (
 	MOUSEEVENTF_VIRTUALDESK = 0x4000
 )
 
-func MouseMove(x, y int32) error {
-	displayWidth, displayHeight := GetDisplaySize()
+func Move(x, y int32) error {
+	displayWidth, displayHeight := monitor.GetDisplaySize()
 	dx := float64(x) * 65535 / float64(displayWidth)
 	dy := float64(y) * 65535 / float64(displayHeight)
 
@@ -75,36 +75,92 @@ func MouseMove(x, y int32) error {
 	return nil
 }
 
-func MouseClick(button string) error {
-	var down, up uintptr
+func Click(button string) error {
+	err := Down(button)
+	if err != nil {
+		return err
+	}
+
+	err = Up(button)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Down(button string) error {
+	var down uint32
 	switch button {
 	case "": // Default to Left click if nothing passed
 	case "left":
-		down, up = MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP
+		down = MOUSEEVENTF_LEFTDOWN
 	case "right":
-		down, up = MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP
+		down = MOUSEEVENTF_RIGHTDOWN
 	case "middle":
-		down, up = MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP
+		down = MOUSEEVENTF_MIDDLEDOWN
 	default:
 		return fmt.Errorf("unsupported button: %s", button)
 	}
 
-	_, _, err := procMouseEvent.Call(down, 0, 0, 0, 0)
-	if err != nil && err.Error() != "The operation completed successfully." {
-		return fmt.Errorf("mouse_event down failed: %v", err)
+	err := MouseEvent(down)
+	if err != nil {
+		return err
 	}
 
-	time.Sleep(1 * time.Millisecond)
+	return nil
+}
 
-	_, _, err = procMouseEvent.Call(up, 0, 0, 0, 0)
-	if err != nil && err.Error() != "The operation completed successfully." {
+func Up(button string) error {
+	var up uint32
+	switch button {
+	case "": // Default to Left click if nothing passed
+	case "left":
+		up = MOUSEEVENTF_LEFTUP
+	case "right":
+		up = MOUSEEVENTF_RIGHTUP
+	case "middle":
+		up = MOUSEEVENTF_MIDDLEUP
+	default:
+		return fmt.Errorf("unsupported button: %s", button)
+	}
+
+	err := MouseEvent(up)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func MouseEvent(button uint32) error {
+	input := MouseInput{
+		Type: INPUT_MOUSE,
+		Mi: struct {
+			Dx          int32
+			Dy          int32
+			MouseData   uint32
+			DwFlags     uint32
+			Time        uint32
+			DwExtraInfo uintptr
+		}{
+			DwFlags: button,
+		},
+	}
+
+	ret, _, err := procSendInput.Call(
+		1,
+		uintptr(unsafe.Pointer(&input)),
+		unsafe.Sizeof(input),
+	)
+	if ret == 0 {
 		return fmt.Errorf("mouse_event up failed: %v", err)
 	}
 
 	return nil
 }
 
-func MousePosition() (*types.POINT, error) {
+func GetPosition() (*types.POINT, error) {
 	var position types.POINT
 	ret, _, err := procGetCursorPos.Call(uintptr(unsafe.Pointer(&position)))
 	if ret == 0 {

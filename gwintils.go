@@ -1,11 +1,9 @@
-package main
-
-import (
-	"golang.org/x/sys/windows"
-)
+package gwintils
 
 const (
 	Version = "v0.0.1"
 )
 
-var User32 = windows.NewLazySystemDLL("user32.dll")
+func GetVersion() string {
+	return Version
+}

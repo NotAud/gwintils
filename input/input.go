@@ -1,11 +1,13 @@
-package main
+package input
 
 import (
 	"fmt"
 	"unsafe"
+
+	User32 "github.com/notaud/gwintils/base"
 )
 
-var procSendInput = User32.NewProc("SendInput")
+var procSendInput = User32.SendInput()
 
 type Inputer interface {
 	isInput()
