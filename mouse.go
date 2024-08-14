@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"time"
 	"unsafe"
+
+	"github.com/notaud/gwintils/types"
 )
 
-var procMouseEvent = User32.NewProc("mouse_event")
+var (
+	procMouseEvent   = User32.NewProc("mouse_event")
+	procGetCursorPos = User32.NewProc("GetCursorPos")
+)
 
 type MouseInput struct {
 	Type uint32
@@ -70,9 +75,10 @@ func MouseMove(x, y int32) error {
 	return nil
 }
 
-func MouseButton(button string) error {
+func MouseClick(button string) error {
 	var down, up uintptr
 	switch button {
+	case "": // Default to Left click if nothing passed
 	case "left":
 		down, up = MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP
 	case "right":
@@ -96,4 +102,14 @@ func MouseButton(button string) error {
 	}
 
 	return nil
+}
+
+func MousePosition() (*types.POINT, error) {
+	var position types.POINT
+	ret, _, err := procGetCursorPos.Call(uintptr(unsafe.Pointer(&position)))
+	if ret == 0 {
+		return nil, err
+	}
+
+	return &position, nil
 }
