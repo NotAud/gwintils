@@ -161,12 +161,12 @@ func MouseEvent(button uint32) error {
 	return nil
 }
 
-func GetPosition() (*types.POINT, error) {
+func GetPosition() (*int32, *int32, error) {
 	var position types.POINT
 	ret, _, err := procGetCursorPos.Call(uintptr(unsafe.Pointer(&position)))
 	if ret == 0 {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &position, nil
+	return &position.X, &position.Y, nil
 }
