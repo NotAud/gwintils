@@ -23,3 +23,7 @@ func GetSystemMetrics() *windows.LazyProc {
 func SendInput() *windows.LazyProc {
 	return User32.NewProc("SendInput")
 }
+
+func MulDiv() *windows.LazyProc {
+	return User32.NewProc("MulDiv")
+}

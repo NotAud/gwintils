@@ -7,6 +7,7 @@ import (
 	User32 "github.com/notaud/gwintils/base"
 	"github.com/notaud/gwintils/monitor"
 	"github.com/notaud/gwintils/types"
+	"github.com/notaud/gwintils/util"
 )
 
 var (
@@ -42,8 +43,8 @@ const (
 
 func Move(x, y int32) error {
 	displayWidth, displayHeight := monitor.GetDisplaySize()
-	dx := float64(x) * 65535 / float64(displayWidth)
-	dy := float64(y) * 65535 / float64(displayHeight)
+	dx := util.MulDiv(x, 65536, displayWidth)
+	dy := util.MulDiv(y, 65536, displayHeight)
 
 	const dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK | MOUSEEVENTF_ABSOLUTE
 	input := MouseInput{

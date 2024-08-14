@@ -8,10 +8,10 @@ const (
 	SM_CYVIRTUALSCREEN = 79
 )
 
-func GetDisplays() int {
+func GetDisplays() int32 {
 	return os.GetSystemMetrics(SM_CMONITORS)
 }
 
-func GetDisplaySize() (int, int) {
+func GetDisplaySize() (int32, int32) {
 	return os.GetSystemMetrics(SM_CXVIRTUALSCREEN), os.GetSystemMetrics(SM_CYVIRTUALSCREEN)
 }
