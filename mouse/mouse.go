@@ -51,6 +51,8 @@ func Move(x, y int32) error {
 	dx := (float64(relativeX) * 65535) / float64(vScreenWidth)
 	dy := (float64(relativeY) * 65535) / float64(vScreenHeight)
 
+	fmt.Println(relativeX, relativeY)
+
 	const dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK | MOUSEEVENTF_ABSOLUTE
 	input := Input{
 		Type: INPUT_MOUSE,
