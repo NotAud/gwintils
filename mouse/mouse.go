@@ -6,8 +6,6 @@ import (
 
 	User32 "github.com/notaud/gwintils/base"
 	"github.com/notaud/gwintils/monitor"
-	"github.com/notaud/gwintils/types"
-	"github.com/notaud/gwintils/util"
 )
 
 var (
@@ -16,16 +14,18 @@ var (
 	procSendInput    = User32.SendInput()
 )
 
-type MouseInput struct {
+type Input struct {
 	Type uint32
-	Mi   struct {
-		Dx          int32
-		Dy          int32
-		MouseData   uint32
-		DwFlags     uint32
-		Time        uint32
-		DwExtraInfo uintptr
-	}
+	Mi   MouseInput
+}
+
+type MouseInput struct {
+	Dx          int32
+	Dy          int32
+	MouseData   uint32
+	DwFlags     uint32
+	Time        uint32
+	DwExtraInfo uintptr
 }
 
 const (
@@ -42,21 +42,19 @@ const (
 )
 
 func Move(x, y int32) error {
-	displayWidth, displayHeight := monitor.GetDisplaySize()
-	dx := util.MulDiv(x, 65536, displayWidth)
-	dy := util.MulDiv(y, 65536, displayHeight)
+	vScreenWidth, vScreenHeight := monitor.GetVirtualDisplaySize()
+	vScreenLeft, vScreenTop := monitor.GetVirtualDisplayPosition()
+
+	relativeX := x - vScreenLeft
+	relativeY := y - vScreenTop
+
+	dx := (float64(relativeX) * 65535) / float64(vScreenWidth)
+	dy := (float64(relativeY) * 65535) / float64(vScreenHeight)
 
 	const dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK | MOUSEEVENTF_ABSOLUTE
-	input := MouseInput{
+	input := Input{
 		Type: INPUT_MOUSE,
-		Mi: struct {
-			Dx          int32
-			Dy          int32
-			MouseData   uint32
-			DwFlags     uint32
-			Time        uint32
-			DwExtraInfo uintptr
-		}{
+		Mi: MouseInput{
 			Dx:      int32(dx),
 			Dy:      int32(dy),
 			DwFlags: dwFlags,
@@ -135,16 +133,9 @@ func Up(button string) error {
 }
 
 func MouseEvent(button uint32) error {
-	input := MouseInput{
+	input := Input{
 		Type: INPUT_MOUSE,
-		Mi: struct {
-			Dx          int32
-			Dy          int32
-			MouseData   uint32
-			DwFlags     uint32
-			Time        uint32
-			DwExtraInfo uintptr
-		}{
+		Mi: MouseInput{
 			DwFlags: button,
 		},
 	}
@@ -161,12 +152,16 @@ func MouseEvent(button uint32) error {
 	return nil
 }
 
-func GetPosition() (*int32, *int32, error) {
-	var position types.POINT
+type Test struct {
+	X, Y int32
+}
+
+func GetPosition() (*Test, error) {
+	var position Test
 	ret, _, err := procGetCursorPos.Call(uintptr(unsafe.Pointer(&position)))
 	if ret == 0 {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return &position.X, &position.Y, nil
+	return &position, nil
 }
