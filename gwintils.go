@@ -23,11 +23,9 @@ func main() {
 			panic(err)
 		}
 
-		// mouse.Move(currentPosition.X, currentPosition.Y)
+		mouse.Move(currentPosition.X, currentPosition.Y)
 
-		MoveMouse(currentPosition.X, currentPosition.Y, 1)
-
-		// time.Sleep(1 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 }
 
