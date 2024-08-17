@@ -4,6 +4,10 @@ import "golang.org/x/sys/windows"
 
 var User32 = windows.NewLazySystemDLL("user32.dll")
 
+func SetProcessDpiAwarenessContext() *windows.LazyProc {
+	return User32.NewProc("SetProcessDpiAwarenessContext")
+}
+
 func GetAsyncKeyState() *windows.LazyProc {
 	return User32.NewProc("GetAsyncKeyState")
 }
@@ -22,8 +26,4 @@ func GetSystemMetrics() *windows.LazyProc {
 
 func SendInput() *windows.LazyProc {
 	return User32.NewProc("SendInput")
-}
-
-func MulDiv() *windows.LazyProc {
-	return User32.NewProc("MulDiv")
 }

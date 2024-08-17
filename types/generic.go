@@ -1,9 +1,11 @@
 package types
 
-type POINT struct {
+type Point struct {
 	X, Y int32
 }
 
-type RECT struct {
+type Rect struct {
 	Left, Top, Right, Bottom int32
 }
+
+type HWND = uintptr

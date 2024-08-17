@@ -6,10 +6,11 @@ import (
 
 	User32 "github.com/notaud/gwintils/base"
 	"github.com/notaud/gwintils/monitor"
+	"github.com/notaud/gwintils/types"
+	"github.com/notaud/gwintils/util"
 )
 
 var (
-	procMouseEvent   = User32.MouseEvent()
 	procGetCursorPos = User32.GetCursorPos()
 	procSendInput    = User32.SendInput()
 )
@@ -41,6 +42,16 @@ const (
 	MOUSEEVENTF_VIRTUALDESK = 0x4000
 )
 
+func GetPosition() (*types.Point, error) {
+	var position types.Point
+	ret, _, err := procGetCursorPos.Call(uintptr(unsafe.Pointer(&position)))
+	if ret == 0 {
+		return nil, err
+	}
+
+	return &position, nil
+}
+
 func Move(x, y int32) error {
 	vScreenWidth, vScreenHeight := monitor.GetVirtualDisplaySize()
 	vScreenLeft, vScreenTop := monitor.GetVirtualDisplayPosition()
@@ -48,17 +59,15 @@ func Move(x, y int32) error {
 	relativeX := x - vScreenLeft
 	relativeY := y - vScreenTop
 
-	dx := (float64(relativeX) * 65535) / float64(vScreenWidth)
-	dy := (float64(relativeY) * 65535) / float64(vScreenHeight)
-
-	fmt.Println(relativeX, relativeY)
+	dx := util.MulDiv(relativeX, 65535, vScreenWidth-1)
+	dy := util.MulDiv(relativeY, 65535, vScreenHeight-1)
 
 	const dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK | MOUSEEVENTF_ABSOLUTE
 	input := Input{
 		Type: INPUT_MOUSE,
 		Mi: MouseInput{
-			Dx:      int32(dx),
-			Dy:      int32(dy),
+			Dx:      dx,
+			Dy:      dy,
 			DwFlags: dwFlags,
 		},
 	}
@@ -152,18 +161,4 @@ func MouseEvent(button uint32) error {
 	}
 
 	return nil
-}
-
-type Test struct {
-	X, Y int32
-}
-
-func GetPosition() (*Test, error) {
-	var position Test
-	ret, _, err := procGetCursorPos.Call(uintptr(unsafe.Pointer(&position)))
-	if ret == 0 {
-		return nil, err
-	}
-
-	return &position, nil
 }
